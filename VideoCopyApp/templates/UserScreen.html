@@ -1,0 +1,219 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>VCDx — My Videos</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--bg:#080c10;--surface:#0d1117;--border:#1e2d3d;--teal:#00f5d4;--muted:#4d6278;--text:#c9d8e8;--red:#ff6b6b}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;min-height:100vh}
+    body::before{
+      content:'';position:fixed;inset:0;
+      background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);
+      background-size:40px 40px;opacity:.3;pointer-events:none;z-index:0
+    }
+
+    nav{
+      position:relative;z-index:10;
+      display:flex;align-items:center;justify-content:space-between;
+      padding:18px 48px;border-bottom:1px solid var(--border);
+      background:rgba(8,12,16,.85);backdrop-filter:blur(10px)
+    }
+    .logo{font-family:'Space Mono',monospace;font-size:18px;color:var(--teal)}
+    .logo span{color:var(--text);opacity:.5;font-size:14px}
+    .nav-links{display:flex;gap:28px;align-items:center}
+    .nav-links a{color:var(--muted);text-decoration:none;font-size:13px;transition:color .2s}
+    .nav-links a:hover,.nav-links a.active{color:var(--teal)}
+    .nav-links a.logout{color:var(--muted);font-size:12px;font-family:'Space Mono',monospace}
+
+    main{position:relative;z-index:1;max-width:1100px;margin:60px auto;padding:0 24px}
+
+    .page-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:40px;flex-wrap:wrap;gap:16px}
+    .page-label{font-family:'Space Mono',monospace;font-size:10px;color:var(--teal);letter-spacing:3px;text-transform:uppercase;margin-bottom:10px}
+    .page-title{font-size:2rem;font-weight:700}
+    .user-pill{
+      font-family:'Space Mono',monospace;font-size:12px;
+      color:var(--teal);background:rgba(0,245,212,.08);
+      border:1px solid rgba(0,245,212,.2);padding:8px 18px;border-radius:100px
+    }
+
+    /* stats row */
+    .stats{display:flex;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:32px}
+    .stat{background:var(--surface);padding:20px 28px;flex:1}
+    .stat-val{font-size:28px;font-weight:700;font-family:'Space Mono',monospace}
+    .stat-val.green{color:var(--teal)}
+    .stat-val.red{color:var(--red)}
+    .stat-label{font-size:12px;color:var(--muted);margin-top:4px}
+
+    /* table */
+    .table-wrap{
+      background:var(--surface);border:1px solid var(--border);
+      border-radius:10px;overflow:hidden
+    }
+    table{width:100%;border-collapse:collapse}
+    thead tr{background:#111820}
+    th{
+      padding:14px 20px;text-align:left;
+      font-family:'Space Mono',monospace;font-size:10px;
+      color:var(--muted);letter-spacing:2px;text-transform:uppercase;
+      border-bottom:1px solid var(--border)
+    }
+    td{
+      padding:16px 20px;font-size:13px;
+      border-bottom:1px solid rgba(30,45,61,.6);vertical-align:middle
+    }
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:rgba(255,255,255,.015)}
+
+    .badge{
+      display:inline-flex;align-items:center;gap:6px;
+      font-family:'Space Mono',monospace;font-size:10px;
+      letter-spacing:1px;padding:4px 12px;border-radius:100px
+    }
+    .badge::before{content:'●';font-size:8px}
+    .badge.unique{background:rgba(0,245,212,.1);color:var(--teal);border:1px solid rgba(0,245,212,.2)}
+    .badge.duplicate{background:rgba(255,107,107,.1);color:var(--red);border:1px solid rgba(255,107,107,.2)}
+
+    .filename{font-family:'Space Mono',monospace;font-size:12px;color:var(--text)}
+    .date-cell{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted)}
+    .ref-cell{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted)}
+
+    .dl-btn{
+      display:inline-flex;align-items:center;gap:6px;
+      font-size:12px;color:var(--teal);text-decoration:none;
+      border:1px solid rgba(0,245,212,.2);padding:6px 14px;border-radius:6px;
+      transition:all .2s
+    }
+    .dl-btn:hover{background:rgba(0,245,212,.08);border-color:var(--teal)}
+
+    .empty{
+      text-align:center;padding:80px 40px;
+      font-size:14px;color:var(--muted)
+    }
+    .empty .icon{font-size:48px;margin-bottom:16px}
+    .empty a{color:var(--teal);text-decoration:none}
+    .empty a:hover{text-decoration:underline}
+
+    /* welcome banner (when navigated from login) */
+    .welcome-banner{
+      background:rgba(0,245,212,.06);border:1px solid rgba(0,245,212,.2);
+      border-radius:10px;padding:20px 28px;margin-bottom:32px;
+      display:flex;align-items:center;gap:14px
+    }
+    .welcome-banner span{font-size:22px}
+    .welcome-banner div p{font-size:14px;color:var(--muted);margin-top:2px}
+    .welcome-banner div h3{font-size:15px;font-weight:600;color:var(--teal)}
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="logo">VCDx<span> / dashboard</span></div>
+    <div class="nav-links">
+      <a href="{% url 'UploadVideo' %}">Upload & Detect</a>
+      <a href="{% url 'DownloadVideo' %}" class="active">My Videos</a>
+      <a href="{% url 'index' %}" class="logout">⏻ Logout</a>
+    </div>
+  </nav>
+
+  <main>
+    <div class="page-header">
+      <div>
+        <div class="page-label">Video Library</div>
+        <h1 class="page-title">My Videos</h1>
+      </div>
+      {% if username %}
+      <div class="user-pill">{{ username }}</div>
+      {% endif %}
+    </div>
+
+    {% if not rows %}
+    <!-- Welcome state — came from login -->
+    <div class="welcome-banner">
+      <span>👋</span>
+      <div>
+        <h3>Welcome{% if username %}, {{ username }}{% endif %}! Your dashboard is ready.</h3>
+        <p>You haven't uploaded any videos yet. <a href="{% url 'UploadVideo' %}">Upload your first video</a> to get started.</p>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if rows %}
+    <!-- Stats -->
+    {% with total=rows|length %}
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-val">{{ total }}</div>
+        <div class="stat-label">Total uploads</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val green" id="uniqueCount">—</div>
+        <div class="stat-label">Unique originals</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val red" id="dupCount">—</div>
+        <div class="stat-label">Duplicates detected</div>
+      </div>
+    </div>
+    {% endwith %}
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>File Name</th>
+            <th>Upload Date</th>
+            <th>Status</th>
+            <th>Original / Reference</th>
+            <th>Download</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+          <tr>
+            <td class="filename">{{ row.1 }}</td>
+            <td class="date-cell">{{ row.2 }}</td>
+            <td>
+              {% if row.3 == "Unique" %}
+                <span class="badge unique">UNIQUE</span>
+              {% else %}
+                <span class="badge duplicate">DUPLICATE</span>
+              {% endif %}
+            </td>
+            <td class="ref-cell">
+              {% if row.3 == "Unique" %}—{% else %}{{ row.4 }}{% endif %}
+            </td>
+            <td>
+              {% if row.3 == "Unique" %}
+                <a class="dl-btn" href="{% url 'DownloadVideoAction' %}?name={{ row.1 }}">⬇ Download</a>
+              {% else %}
+                <a class="dl-btn" href="{% url 'DownloadVideoAction' %}?name={{ row.4 }}" title="Download original">⬇ Original</a>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <script>
+      // Count unique vs duplicate from table
+      const rows = document.querySelectorAll('tbody tr');
+      let u = 0, d = 0;
+      rows.forEach(r => {
+        if (r.querySelector('.badge.unique')) u++;
+        else if (r.querySelector('.badge.duplicate')) d++;
+      });
+      document.getElementById('uniqueCount').textContent = u;
+      document.getElementById('dupCount').textContent = d;
+    </script>
+    {% else %}
+    <div class="empty">
+      <div class="icon">🎬</div>
+      <p>No videos uploaded yet.<br/><a href="{% url 'UploadVideo' %}">Upload your first video →</a></p>
+    </div>
+    {% endif %}
+  </main>
+</body>
+</html>

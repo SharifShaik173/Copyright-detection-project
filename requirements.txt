@@ -1,0 +1,20 @@
+# Web framework
+Django==2.1.7
+
+# Database
+PyMySQL==0.9.3
+
+# Computer vision — HOG, ZMV, colour histograms
+opencv-python-headless==4.5.5.64
+
+# Numerical — CKKS encoding (DCT), matrix ops
+numpy==1.21.6
+scipy==1.7.3
+
+# Paillier HE (legacy key compatibility)
+phe==1.5.0
+
+# NOTE: For production CKKS, replace the CKKSContext class with TenSEAL:
+#   pip install tenseal
+# or Microsoft SEAL via Python bindings.
+# The interface (encode/encrypt/he_cosine_similarity) is identical.

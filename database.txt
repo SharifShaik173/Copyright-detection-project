@@ -1,0 +1,15 @@
+create database videocopy;
+use videocopy;
+
+create table register(username varchar(50) primary key,
+password varchar(50),
+contact_no varchar(20),
+email varchar(50), 
+address varchar(80));
+
+create table videos(username varchar(50), video_name varchar(80),
+upload_date varchar(30), video_status varchar(30), link_to varchar(80));
+
+
+
+

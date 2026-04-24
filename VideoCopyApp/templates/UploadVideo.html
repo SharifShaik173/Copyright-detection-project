@@ -1,0 +1,329 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>VCDx — Upload Video</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--bg:#080c10;--surface:#0d1117;--border:#1e2d3d;--teal:#00f5d4;--blue:#0ff;--muted:#4d6278;--text:#c9d8e8;--red:#ff6b6b;--green:#00f5d4}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;min-height:100vh}
+    body::before{
+      content:'';position:fixed;inset:0;
+      background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);
+      background-size:40px 40px;opacity:.3;pointer-events:none;z-index:0
+    }
+    nav{
+      position:relative;z-index:10;
+      display:flex;align-items:center;justify-content:space-between;
+      padding:18px 48px;border-bottom:1px solid var(--border);
+      background:rgba(8,12,16,.85);backdrop-filter:blur(10px)
+    }
+    .logo{font-family:'Space Mono',monospace;font-size:18px;color:var(--teal)}
+    .logo span{color:var(--text);opacity:.5;font-size:14px}
+    .nav-links{display:flex;gap:28px;align-items:center}
+    .nav-links a{color:var(--muted);text-decoration:none;font-size:13px;transition:color .2s}
+    .nav-links a:hover,.nav-links a.active{color:var(--teal)}
+    .nav-links a.logout{color:var(--muted);font-size:12px;font-family:'Space Mono',monospace}
+    main{position:relative;z-index:1;max-width:820px;margin:60px auto;padding:0 24px}
+    .page-label{font-family:'Space Mono',monospace;font-size:10px;color:var(--teal);letter-spacing:3px;text-transform:uppercase;margin-bottom:12px}
+    .page-title{font-size:2rem;font-weight:700;margin-bottom:8px}
+    .page-sub{font-size:14px;color:var(--muted);margin-bottom:48px;line-height:1.7}
+    .upload-zone{
+      border:2px dashed var(--border);border-radius:12px;
+      padding:60px 40px;text-align:center;
+      background:var(--surface);
+      transition:border-color .2s,background .2s;
+      cursor:pointer;position:relative
+    }
+    .upload-zone:hover,.upload-zone.drag{border-color:var(--teal);background:#111820}
+    .upload-zone input[type=file]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+    .upload-icon{font-size:48px;margin-bottom:16px;display:block}
+    .upload-zone h3{font-size:17px;font-weight:600;margin-bottom:8px}
+    .upload-zone p{font-size:13px;color:var(--muted)}
+    .file-name{margin-top:16px;font-family:'Space Mono',monospace;font-size:12px;color:var(--teal);display:none}
+    .info-strip{
+      display:grid;grid-template-columns:repeat(3,1fr);
+      gap:1px;margin-top:1px;
+      background:var(--border);border-radius:0 0 12px 12px;overflow:hidden
+    }
+    .info-item{background:var(--surface);padding:14px 20px;display:flex;align-items:center;gap:10px}
+    .info-item .dot{width:6px;height:6px;border-radius:50%;background:var(--teal);flex-shrink:0}
+    .info-item span{font-size:12px;color:var(--muted)}
+    .btn-upload{
+      display:block;width:100%;margin-top:24px;
+      padding:15px;background:var(--teal);color:#080c10;
+      border:none;border-radius:8px;font-size:15px;font-weight:700;
+      font-family:'Sora',sans-serif;cursor:pointer;transition:all .2s
+    }
+    .btn-upload:hover{box-shadow:0 0 32px rgba(0,245,212,.35);opacity:.9}
+    .btn-upload:disabled{opacity:.4;cursor:not-allowed}
+    .loading{display:none;text-align:center;padding:40px}
+    .spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--teal);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .loading p{font-size:13px;color:var(--muted);font-family:'Space Mono',monospace}
+    .result{display:none;margin-top:32px}
+    .result.show{display:block}
+    .result-card{border-radius:12px;padding:32px 36px;display:flex;align-items:flex-start;gap:20px}
+    .result-card.unique{background:rgba(0,245,212,.06);border:1px solid rgba(0,245,212,.25)}
+    .result-card.duplicate{background:rgba(255,107,107,.06);border:1px solid rgba(255,107,107,.25)}
+    .result-icon{font-size:36px;flex-shrink:0}
+    .result-content h3{font-size:18px;font-weight:700;margin-bottom:6px}
+    .result-card.unique h3{color:var(--teal)}
+    .result-card.duplicate h3{color:var(--red)}
+    .result-content p{font-size:14px;color:var(--muted);line-height:1.7}
+    .result-content .file-ref{margin-top:12px;font-family:'Space Mono',monospace;font-size:12px;color:var(--text);background:rgba(255,255,255,.05);padding:8px 14px;border-radius:6px;display:inline-block}
+    .badge-row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+    .badge{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;padding:4px 12px;border-radius:100px}
+    .badge.ok{background:rgba(0,245,212,.12);color:var(--teal);border:1px solid rgba(0,245,212,.2)}
+    .badge.warn{background:rgba(255,107,107,.12);color:var(--red);border:1px solid rgba(255,107,107,.2)}
+
+    /* ── Detector breakdown panel ── */
+    .detector-panel{margin-top:28px;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+    .detector-panel h4{
+      font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;
+      text-transform:uppercase;color:var(--muted);
+      padding:14px 20px;border-bottom:1px solid var(--border);
+      background:rgba(255,255,255,.02)
+    }
+    .detector-row{
+      display:grid;grid-template-columns:160px 1fr 80px 60px;
+      align-items:center;gap:16px;
+      padding:14px 20px;border-bottom:1px solid var(--border)
+    }
+    .detector-row:last-child{border-bottom:none}
+    .det-name{font-size:13px;font-weight:600}
+    .det-bar-wrap{background:var(--border);border-radius:100px;height:6px;overflow:hidden}
+    .det-bar{height:100%;border-radius:100px;transition:width .4s}
+    .det-bar.match{background:var(--red)}
+    .det-bar.nomatch{background:var(--teal)}
+    .det-val{font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);text-align:right}
+    .det-vote{font-family:'Space Mono',monospace;font-size:11px;text-align:center;padding:3px 8px;border-radius:6px}
+    .det-vote.yes{background:rgba(255,107,107,.15);color:var(--red)}
+    .det-vote.no{background:rgba(0,245,212,.1);color:var(--teal)}
+
+    .vote-summary{
+      display:flex;align-items:center;gap:12px;
+      padding:16px 20px;
+      background:rgba(255,255,255,.02);
+      border-top:1px solid var(--border)
+    }
+    .vote-dots{display:flex;gap:6px}
+    .vote-dot{width:10px;height:10px;border-radius:50%}
+    .vote-dot.filled-dup{background:var(--red)}
+    .vote-dot.filled-uni{background:var(--teal)}
+    .vote-dot.empty{background:var(--border)}
+    .vote-label{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted)}
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="logo">VCDx<span> / upload</span></div>
+    <div class="nav-links">
+      <a href="{% url 'UploadVideo' %}" class="active">Upload &amp; Detect</a>
+      <a href="{% url 'DownloadVideo' %}">My Videos</a>
+      <a href="{% url 'index' %}" class="logout">⏻ Logout</a>
+    </div>
+  </nav>
+
+  <main>
+    <div class="page-label">Video Analysis</div>
+    <h1 class="page-title">Upload &amp; Detect Copy</h1>
+    <p class="page-sub">
+      Upload any video — even filmed from a different angle, different frame rate,
+      or with completely different audio. Five independent detectors vote on visual
+      content similarity using Homomorphic Encryption.
+    </p>
+
+    <form method="post" action="{% url 'UploadVideoAction' %}" enctype="multipart/form-data" id="uploadForm">
+      {% csrf_token %}
+      <div class="upload-zone" id="dropZone">
+        <input type="file" name="t1" id="fileInput" accept="video/*" required/>
+        <span class="upload-icon">🎬</span>
+        <h3>Drop your video here</h3>
+        <p>or click to browse &nbsp;·&nbsp; MP4, AVI, MOV, MKV supported</p>
+        <div class="file-name" id="fileName"></div>
+      </div>
+
+      <div class="info-strip">
+        <div class="info-item"><div class="dot"></div><span>FPS &amp; resolution invariant</span></div>
+        <div class="info-item"><div class="dot"></div><span>Multi-angle / multi-view</span></div>
+        <div class="info-item"><div class="dot"></div><span>Audio-agnostic detection</span></div>
+      </div>
+
+      <button type="submit" class="btn-upload" id="uploadBtn" disabled>
+        Select a video to upload
+      </button>
+    </form>
+
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p>Extracting perceptual fingerprint &amp; running FHE comparison…</p>
+    </div>
+
+    {% if upload_result %}
+    <div class="result show">
+      {% if upload_result.status == "Unique" %}
+      <div class="result-card unique">
+        <div class="result-icon">✅</div>
+        <div class="result-content">
+          <h3>Original — Stored Successfully</h3>
+          <p>
+            <strong>{{ upload_result.fname }}</strong> is verified as original.
+            No matching visual content was found across any angle, frame rate,
+            or resolution in the database.
+          </p>
+          <div class="file-ref">{{ upload_result.fname }}</div>
+          <div class="badge-row">
+            <span class="badge ok">UNIQUE</span>
+            <span class="badge ok">STORED IN CLOUD</span>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="result-card duplicate">
+        <div class="result-icon">⚠️</div>
+        <div class="result-content">
+          <h3>Duplicate Detected — Not Stored</h3>
+          <p>
+            <strong>{{ upload_result.fname }}</strong> matches existing content.
+            The same scene may have been captured from a different angle, at a
+            different frame rate, or with completely different audio.
+          </p>
+          <div class="file-ref">Matched original → {{ upload_result.matched }}</div>
+          <div class="badge-row">
+            <span class="badge warn">DUPLICATE</span>
+            <span class="badge warn">MULTI-VIEW DETECTED</span>
+            <span class="badge warn">REJECTED</span>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if upload_result.detail %}
+      {% with d=upload_result.detail %}
+      <div class="detector-panel">
+        <h4>Detector Breakdown — vs. &ldquo;{{ d.candidate }}&rdquo;</h4>
+
+        <!-- FHE Aggregate -->
+        <div class="detector-row">
+          <div class="det-name">🔐 FHE Aggregate</div>
+          <div class="det-bar-wrap">
+            <div class="det-bar {% if d.v_fhe %}match{% else %}nomatch{% endif %}"
+                 style="width:{{ d.fhe_reldiff|floatformat:0 }}0%"></div>
+          </div>
+          <div class="det-val">Δ {{ d.fhe_reldiff }}</div>
+          <div class="det-vote {% if d.v_fhe %}yes{% else %}no{% endif %}">
+            {% if d.v_fhe %}DUP{% else %}OK{% endif %}
+          </div>
+        </div>
+
+        <!-- aHash Best-of-N -->
+        <div class="detector-row">
+          <div class="det-name">🖼 aHash Frames</div>
+          <div class="det-bar-wrap">
+            <div class="det-bar {% if d.v_ahash %}match{% else %}nomatch{% endif %}"
+                 style="width:{% widthratio d.ahash_sim 1 100 %}%"></div>
+          </div>
+          <div class="det-val">{{ d.ahash_sim }}</div>
+          <div class="det-vote {% if d.v_ahash %}yes{% else %}no{% endif %}">
+            {% if d.v_ahash %}DUP{% else %}OK{% endif %}
+          </div>
+        </div>
+
+        <!-- pHash/DCT -->
+        <div class="detector-row">
+          <div class="det-name">📐 pHash / DCT</div>
+          <div class="det-bar-wrap">
+            <div class="det-bar {% if d.v_phash %}match{% else %}nomatch{% endif %}"
+                 style="width:{% widthratio d.phash_sim 1 100 %}%"></div>
+          </div>
+          <div class="det-val">{{ d.phash_sim }}</div>
+          <div class="det-vote {% if d.v_phash %}yes{% else %}no{% endif %}">
+            {% if d.v_phash %}DUP{% else %}OK{% endif %}
+          </div>
+        </div>
+
+        <!-- Scene temporal -->
+        <div class="detector-row">
+          <div class="det-name">🎞 Scene Temporal</div>
+          <div class="det-bar-wrap">
+            <div class="det-bar {% if d.v_scene %}match{% else %}nomatch{% endif %}"
+                 style="width:{% widthratio d.scene_sim 1 100 %}%"></div>
+          </div>
+          <div class="det-val">{{ d.scene_sim }}</div>
+          <div class="det-vote {% if d.v_scene %}yes{% else %}no{% endif %}">
+            {% if d.v_scene %}DUP{% else %}OK{% endif %}
+          </div>
+        </div>
+
+        <!-- Colour histogram -->
+        <div class="detector-row">
+          <div class="det-name">🎨 Colour Hist.</div>
+          <div class="det-bar-wrap">
+            <div class="det-bar {% if d.v_hist %}match{% else %}nomatch{% endif %}"
+                 style="width:{% widthratio d.hist_sim 1 100 %}%"></div>
+          </div>
+          <div class="det-val">{{ d.hist_sim }}</div>
+          <div class="det-vote {% if d.v_hist %}yes{% else %}no{% endif %}">
+            {% if d.v_hist %}DUP{% else %}OK{% endif %}
+          </div>
+        </div>
+
+        <!-- Vote summary -->
+        <div class="vote-summary">
+          <div class="vote-dots">
+            {% for i in "12345" %}
+              {% if forloop.counter <= d.votes %}
+                <div class="vote-dot {% if upload_result.status == 'Duplicate' %}filled-dup{% else %}filled-uni{% endif %}"></div>
+              {% else %}
+                <div class="vote-dot empty"></div>
+              {% endif %}
+            {% endfor %}
+          </div>
+          <div class="vote-label">
+            {{ d.votes }}/5 detectors voted DUPLICATE &nbsp;·&nbsp; threshold = 2/5
+          </div>
+        </div>
+      </div>
+      {% endwith %}
+      {% endif %}
+    </div>
+    {% endif %}
+  </main>
+
+  <script>
+    const fileInput  = document.getElementById('fileInput');
+    const fileName   = document.getElementById('fileName');
+    const uploadBtn  = document.getElementById('uploadBtn');
+    const uploadForm = document.getElementById('uploadForm');
+    const loading    = document.getElementById('loading');
+    const dropZone   = document.getElementById('dropZone');
+
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files.length > 0) {
+        const name = fileInput.files[0].name;
+        fileName.textContent = '📎 ' + name;
+        fileName.style.display = 'block';
+        uploadBtn.textContent = 'Analyse "' + name + '"';
+        uploadBtn.disabled = false;
+      }
+    });
+    uploadForm.addEventListener('submit', () => {
+      uploadBtn.disabled = true;
+      uploadBtn.textContent = 'Analysing…';
+      loading.style.display = 'block';
+    });
+    dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('drag'); });
+    dropZone.addEventListener('dragleave', ()  => dropZone.classList.remove('drag'));
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault(); dropZone.classList.remove('drag');
+      if (e.dataTransfer.files.length) {
+        fileInput.files = e.dataTransfer.files;
+        fileInput.dispatchEvent(new Event('change'));
+      }
+    });
+  </script>
+</body>
+</html>

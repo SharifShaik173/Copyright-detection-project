@@ -1,0 +1,226 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>VCDx — Video Copy Detection</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:      #080c10;
+      --surface: #0d1117;
+      --border:  #1e2d3d;
+      --teal:    #00f5d4;
+      --blue:    #0ff;
+      --muted:   #4d6278;
+      --text:    #c9d8e8;
+    }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;min-height:100vh;overflow-x:hidden}
+
+    /* ── grid bg ── */
+    body::before{
+      content:'';position:fixed;inset:0;
+      background-image:
+        linear-gradient(var(--border) 1px,transparent 1px),
+        linear-gradient(90deg,var(--border) 1px,transparent 1px);
+      background-size:40px 40px;
+      opacity:.35;pointer-events:none;z-index:0
+    }
+
+    /* ── nav ── */
+    nav{
+      position:relative;z-index:10;
+      display:flex;align-items:center;justify-content:space-between;
+      padding:20px 48px;
+      border-bottom:1px solid var(--border);
+      backdrop-filter:blur(10px);
+      background:rgba(8,12,16,.7)
+    }
+    .logo{font-family:'Space Mono',monospace;font-size:22px;color:var(--teal);letter-spacing:2px}
+    .logo span{color:var(--text);opacity:.5}
+    .nav-links{display:flex;gap:32px}
+    .nav-links a{
+      color:var(--muted);text-decoration:none;font-size:14px;
+      letter-spacing:.5px;transition:color .2s;position:relative
+    }
+    .nav-links a:hover{color:var(--teal)}
+    .nav-links a.active{color:var(--text)}
+    .nav-links a.cta{
+      color:var(--bg);background:var(--teal);
+      padding:8px 20px;border-radius:4px;font-weight:600
+    }
+    .nav-links a.cta:hover{opacity:.85;color:var(--bg)}
+
+    /* ── hero ── */
+    .hero{
+      position:relative;z-index:1;
+      display:flex;flex-direction:column;align-items:center;
+      text-align:center;padding:100px 48px 80px
+    }
+    .badge{
+      display:inline-flex;align-items:center;gap:8px;
+      border:1px solid var(--border);border-radius:100px;
+      padding:6px 16px;font-size:12px;color:var(--teal);
+      font-family:'Space Mono',monospace;margin-bottom:32px;
+      background:rgba(0,245,212,.05)
+    }
+    .badge::before{content:'●';font-size:8px;animation:pulse 2s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+    h1{
+      font-size:clamp(2.5rem,6vw,5rem);font-weight:700;
+      line-height:1.08;max-width:800px;margin-bottom:24px
+    }
+    h1 em{
+      font-style:normal;
+      background:linear-gradient(135deg,var(--teal),var(--blue));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent
+    }
+    .sub{font-size:18px;color:var(--muted);max-width:560px;line-height:1.7;margin-bottom:48px}
+
+    .cta-row{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+    .btn{
+      padding:14px 32px;border-radius:6px;font-size:15px;
+      font-weight:600;cursor:pointer;text-decoration:none;
+      transition:all .2s;letter-spacing:.3px
+    }
+    .btn-primary{
+      background:var(--teal);color:var(--bg);
+    }
+    .btn-primary:hover{box-shadow:0 0 28px rgba(0,245,212,.4);transform:translateY(-1px)}
+    .btn-outline{
+      background:transparent;color:var(--text);
+      border:1px solid var(--border)
+    }
+    .btn-outline:hover{border-color:var(--teal);color:var(--teal)}
+
+    /* ── features ── */
+    .features{
+      position:relative;z-index:1;
+      display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:1px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+      margin:0 0 80px
+    }
+    .feat{
+      padding:40px 36px;
+      background:var(--surface);
+      border-right:1px solid var(--border);
+      transition:background .2s
+    }
+    .feat:last-child{border-right:none}
+    .feat:hover{background:#111820}
+    .feat-icon{font-size:28px;margin-bottom:16px}
+    .feat h3{font-size:15px;font-weight:600;color:var(--text);margin-bottom:10px}
+    .feat p{font-size:13px;color:var(--muted);line-height:1.7}
+
+    /* ── how it works ── */
+    .section{position:relative;z-index:1;padding:80px 48px;max-width:1100px;margin:0 auto}
+    .section-label{
+      font-family:'Space Mono',monospace;font-size:11px;
+      color:var(--teal);letter-spacing:3px;text-transform:uppercase;margin-bottom:16px
+    }
+    .section h2{font-size:2rem;font-weight:700;margin-bottom:48px}
+
+    .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:32px}
+    .step{display:flex;flex-direction:column;gap:12px}
+    .step-num{
+      font-family:'Space Mono',monospace;font-size:11px;
+      color:var(--teal);letter-spacing:2px
+    }
+    .step h4{font-size:15px;font-weight:600}
+    .step p{font-size:13px;color:var(--muted);line-height:1.7}
+    .step-connector{height:1px;background:linear-gradient(90deg,var(--teal),transparent);margin-top:8px}
+
+    /* ── footer ── */
+    footer{
+      position:relative;z-index:1;
+      border-top:1px solid var(--border);
+      padding:28px 48px;
+      display:flex;align-items:center;justify-content:space-between;
+      font-size:12px;color:var(--muted);font-family:'Space Mono',monospace
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="logo">VCDx<span>/system</span></div>
+    <div class="nav-links">
+      <a href="{% url 'index' %}" class="active">Home</a>
+      <a href="{% url 'UserLogin' %}">Login</a>
+      <a href="{% url 'Register' %}" class="cta">Get Started</a>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="badge">Homomorphic Encryption · Multi-View Detection</div>
+    <h1>Detect duplicate videos<br/>across <em>every angle</em></h1>
+    <p class="sub">
+      Privacy-preserving video copy detection using Paillier FHE.
+      Robust against different cameras, resolutions, frame rates, and viewpoints.
+    </p>
+    <div class="cta-row">
+      <a href="{% url 'Register' %}" class="btn btn-primary">Create Account</a>
+      <a href="{% url 'UserLogin' %}" class="btn btn-outline">Sign In</a>
+    </div>
+  </section>
+
+  <div class="features">
+    <div class="feat">
+      <div class="feat-icon">🔐</div>
+      <h3>Homomorphic Encryption</h3>
+      <p>Video fingerprints are compared entirely in the encrypted domain using Paillier FHE — raw content never exposed.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">📐</div>
+      <h3>Resolution-Invariant</h3>
+      <p>Frames are normalised to a fixed thumbnail size before fingerprinting. 4K, 1080p, 720p — all comparable.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">⏱️</div>
+      <h3>FPS & Length Agnostic</h3>
+      <p>Sampling is percentage-based. A 60fps 5-min clip and a 30fps 5m10s clip of the same scene are correctly matched.</p>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">🎥</div>
+      <h3>Multi-View Aware</h3>
+      <p>Threshold-based Hamming similarity on perceptual hashes catches duplicates filmed from different angles.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">How it works</div>
+    <h2>Four steps to detection</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01 —</div>
+        <h4>Upload Video</h4>
+        <p>User uploads a video. The system temporarily stores it for processing.</p>
+        <div class="step-connector"></div>
+      </div>
+      <div class="step">
+        <div class="step-num">02 —</div>
+        <h4>Perceptual Fingerprint</h4>
+        <p>20 frames sampled by percentage. Each resized to 16×16, hashed by pixel-vs-mean comparison.</p>
+        <div class="step-connector"></div>
+      </div>
+      <div class="step">
+        <div class="step-num">03 —</div>
+        <h4>FHE Comparison</h4>
+        <p>Signatures encrypted with Paillier. Homomorphic subtraction computed on ciphertext — no plaintext leak.</p>
+        <div class="step-connector"></div>
+      </div>
+      <div class="step">
+        <div class="step-num">04 —</div>
+        <h4>Verdict & Storage</h4>
+        <p>Unique videos stored in cloud. Duplicates logged with a reference to the original — never double-stored.</p>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <span>VCDx — Video Copy Detection System</span>
+    <span>FHE · Perceptual Hashing · Multi-View</span>
+  </footer>
+</body>
+</html>
