@@ -1,14 +1,14 @@
 
 
-🔐 Homomorphic Encryption-Based Secure Video Storage in Cloud
+## 🔐 Homomorphic Encryption-Based Secure Video Storage in Cloud
 
-📌 What is this project?
+## 📌 What is this project?
 
 This project stores multiple videos in the cloud using **Homomorphic Encryption (HE)** — a special encryption technique that allows the cloud server to process and manage your videos **without ever decrypting them**. Your data stays encrypted from upload to download, even during computation.
 
 
  
- ❌ Existing System — Before
+ ## ❌ Existing System — Before
 
 Traditional cloud video storage **must decrypt data on the server** to process it. This creates serious risks:
 
@@ -22,7 +22,7 @@ Traditional cloud video storage **must decrypt data on the server** to process i
 
  
  
- ✅ Proposed System — Now
+ ## ✅ Proposed System — Now
 
 With Homomorphic Encryption, the cloud **never sees your actual video** at any stage:
 
@@ -36,7 +36,7 @@ With Homomorphic Encryption, the cloud **never sees your actual video** at any s
 
  
  
- ⚖️ Comparison
+ ## ⚖️ Comparison
 
 | | ❌ Existing System | ✅ Proposed System |
 
